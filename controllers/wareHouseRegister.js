@@ -53,7 +53,8 @@ const getRecords = async (req, res) => {
       .populate('pickup_person', { _id: 0, name: 1 })
       .populate({
         path: 'item_list.item_id',
-        select: { _id: 1, item_name: 1, quantity_unit: 1 } // Select only specific fields
+        select: { _id: 1, item_name: 1, quantity_unit: 1 }, // Select only specific fields
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
     if (!wareHouseRegister) {
       logger.error(`${ip}: API /api/v1/register/get responded with Error `);
@@ -85,7 +86,8 @@ const getRecordById = async (req, res) => {
       .populate({ path: 'pickup_person', select: ['_id', 'name'] })
       .populate({
         path: 'item_list.item_id',
-        select: { _id: 1, item_name: 1, quantity_unit: 1 } // Select only specific fields
+        select: { _id: 1, item_name: 1, quantity_unit: 1 }, // Select only specific fields
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
 
     if (!wareHouseRegister) {
@@ -122,7 +124,8 @@ const getRecordsByLocation = async (req, res) => {
       .populate({ path: 'pickup_person', select: ['_id', 'name'] })
       .populate({
         path: 'item_list.item_id',
-        select: { _id: 1, item_name: 1, quantity_unit: 1 }
+        select: { _id: 1, item_name: 1, quantity_unit: 1 },
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
 
     if (!wareHouseRegisters || wareHouseRegisters.length === 0) {
@@ -165,7 +168,8 @@ const getRecordsByLocationAndLastDate = async (req, res) => {
       .populate({ path: 'pickup_person', select: ['_id', 'name'] })
       .populate({
         path: 'item_list.item_id',
-        select: { _id: 1, item_name: 1, quantity_unit: 1 }
+        select: { _id: 1, item_name: 1, quantity_unit: 1 },
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
 
     wareHouseRegisters = wareHouseRegisters.slice(1);
@@ -218,7 +222,8 @@ const getRecordsByDateRange = async (req, res) => {
       .populate('pickup_person', { _id: 0, name: 1 })
       .populate({
         path: 'item_list.item_id',
-        select: { _id: 1, item_name: 1, quantity_unit: 1 }
+        select: { _id: 1, item_name: 1, quantity_unit: 1 },
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
 
     if (!wareHouseRegister || wareHouseRegister.length === 0) {
@@ -423,7 +428,8 @@ const getRecordsByWarehouseAdmin = async (req, res) => {
       .populate({ path: 'pickup_person', select: ['_id', 'name'] })
       .populate({
         path: 'item_list.item_id',
-        select: { _id: 1, item_name: 1, quantity_unit: 1 }
+        select: { _id: 1, item_name: 1, quantity_unit: 1 },
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
 
     if (!wareHouseRegisters || wareHouseRegisters.length === 0) {
@@ -457,7 +463,8 @@ const getRecordsByPickupPerson = async (req, res) => {
       .populate({ path: 'pickup_person', select: ['_id', 'name'] })
       .populate({
         path: 'item_list.item_id',
-        select: { _id: 1, item_name: 1, quantity_unit: 1 }
+        select: { _id: 1, item_name: 1, quantity_unit: 1 },
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
 
     if (!wareHouseRegisters || wareHouseRegisters.length === 0) {
@@ -574,7 +581,8 @@ const getSortedRecords = async (req, res) => {
       .populate({
         path: 'item_list.item_id',
         match: { item_name: { $regex: data.item_name, $options: 'i' } },
-        select: { _id: 1, item_name: 1, quantity_unit: 1 }
+        select: { _id: 1, item_name: 1, quantity_unit: 1 },
+        populate: { path: 'quantity_unit', select: { _id: 1, name: 1 } }
       });
 
     if (!wareHouseRegisters || wareHouseRegisters.length === 0) {

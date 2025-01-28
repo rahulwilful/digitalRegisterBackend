@@ -27,7 +27,7 @@ const addItem = async (req, res) => {
       return res.status(409).json({ message: 'Item already exists' });
     }
 
-    const item = await Item.create(data);
+    const item = await Item.create(data).populate({ path: 'quantity_unit' });
     logger.info(`${ip}: API /api/v1/item responded with Success `);
     return res.status(201).json({ result: item });
   } catch (err) {
@@ -51,7 +51,7 @@ const updateItem = async (req, res) => {
   console.log('data: ', data);
   const id = req.params.id;
   try {
-    const item = await Item.findByIdAndUpdate(id, { $set: data }, { new: true });
+    const item = await Item.findByIdAndUpdate(id, { $set: data }, { new: true }).populate({ path: 'quantity_unit' });
     if (!item) {
       logger.error(`${ip}: API /api/v1/item/:id responded with Error `);
       return res.status(404).json({ error: 'Item not found', message: 'Item not found' });
@@ -71,7 +71,7 @@ const deleteItem = async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   const id = req.params.id;
   try {
-    const item = await Item.findByIdAndUpdate(id, { $set: { is_delete: true } }, { new: true });
+    const item = await Item.findByIdAndUpdate(id, { $set: { is_delete: true } }, { new: true }).populate({ path: 'quantity_unit' });
     if (!item) {
       logger.error(`${ip}: API /api/v1/item/:id responded with Error `);
       return res.status(404).json({ error: 'Item not found', message: 'Item not found' });
@@ -91,7 +91,7 @@ const restoreItem = async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   const id = req.params.id;
   try {
-    const item = await Item.findByIdAndUpdate(id, { $set: { is_delete: false } }, { new: true });
+    const item = await Item.findByIdAndUpdate(id, { $set: { is_delete: false } }, { new: true }).populate({ path: 'quantity_unit' });
     if (!item) {
       logger.error(`${ip}: API /api/v1/item/restore/:id responded with Error `);
       return res.status(404).json({ error: 'Item not found' });
@@ -110,7 +110,7 @@ const restoreItem = async (req, res) => {
 const getItems = async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   try {
-    const items = await Item.find().sort({ item_name: 1 });
+    const items = await Item.find().sort({ item_name: 1 }).populate({ path: 'quantity_unit' });
     logger.info(`${ip}: API /api/v1/item/getall responded with Success `);
     return res.status(200).json({ result: items });
   } catch (err) {
@@ -125,7 +125,7 @@ const getItems = async (req, res) => {
 const getActiveItems = async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   try {
-    const items = await Item.find({ is_delete: false }).sort({ create_date: -1 });
+    const items = await Item.find({ is_delete: false }).sort({ create_date: -1 }).populate({ path: 'quantity_unit' });
     logger.info(`${ip}: API /api/v1/item/getall responded with Success `);
     return res.status(200).json({ result: items });
   } catch (err) {
@@ -141,7 +141,7 @@ const getItemById = async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   const id = req.params.id;
   try {
-    const item = await Item.findById(id);
+    const item = await Item.findById(id).populate({ path: 'quantity_unit' });
     if (!item) {
       logger.error(`${ip}: API /api/v1/item/getbyid responded with Error `);
       return res.status(404).json({ error: 'Item not found' });
@@ -174,7 +174,7 @@ const getItemsByName = async (req, res) => {
 
     const items = await Item.find({
       item_name: regex
-    });
+    }).populate({ path: 'quantity_unit' });
 
     if (items.length === 0) {
       logger.error(`${ip}: API /api/v1/item/get/by/name responded with Error `);
@@ -210,7 +210,7 @@ const getItemsByNameAndActive = async (req, res) => {
     const items = await Item.find({
       item_name: regex,
       is_delete: false
-    });
+    }).populate({ path: 'quantity_unit' });
 
     if (items.length === 0) {
       logger.error(`${ip}: API /api/v1/item//get/active/by/name responded with Error `);
@@ -225,6 +225,34 @@ const getItemsByNameAndActive = async (req, res) => {
   }
 };
 
+//@desc Update Item API
+//@route PUT /api/v1/item/update/quantity
+//@access Private
+const updateQuantityUnit = async (req, res) => {
+  const errors = validationResult(req);
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+  if (!errors.isEmpty()) {
+    logger.error(`${ip}: API /api/v1/item/:id responded with Error `);
+    return res.status(400).json({ errors: errors.array(), message: 'Something went wrong' });
+  }
+  const data = matchedData(req);
+  console.log('data: ', data);
+  const id = req.params.id;
+  try {
+    const items = await Item.updateMany({ $set: { quantity_unit: data.quantity_unit_id } }).populate({ path: 'quantity_unit' });
+    if (!items.nModified) {
+      logger.error(`${ip}: API /api/v1/item/:id responded with Error `);
+      return res.status(404).json({ error: 'Item not found', message: 'Item not found' });
+    }
+    logger.info(`${ip}: API /api/v1/item/:id responded with Success `);
+    return res.status(200).json({ result: items, message: 'Items Updated' });
+  } catch (err) {
+    logger.error(`${ip}: API /api/v1/item/:id responded with Error `);
+    return res.status(500).json({ error: err, message: 'Something went wrong' });
+  }
+};
+
 module.exports = {
   testItemAPI,
   addItem,
@@ -235,5 +263,6 @@ module.exports = {
   getItemById,
   getItemsByName,
   getActiveItems,
-  getItemsByNameAndActive
+  getItemsByNameAndActive,
+  updateQuantityUnit
 };

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const { testItemAPI, addItem, updateItem, deleteItem, restoreItem, getItems, getActiveItems, getItemById, getItemsByName, getItemsByNameAndActive } = require('../controllers/item');
+const { testItemAPI, addItem, updateItem, updateQuantityUnit, deleteItem, restoreItem, getItems, getActiveItems, getItemById, getItemsByName, getItemsByNameAndActive } = require('../controllers/item');
 const ValidateToken = require('../middleWare/validateToken');
 
 //@desc Test Role_type API
@@ -53,5 +53,10 @@ router.post('/get/by/name', [body('item_name', 'Enter a valid item_name').isLeng
 //@route POST /api/v1/item//get/active/by/name
 //@access Private
 router.post('/get/active/by/name', [body('item_name', 'Enter a valid item_name').isLength({ min: 1 })], getItemsByNameAndActive);
+
+//@desc Update Item API
+//@route PUT /api/v1/item/update/quantity
+//@access Private
+router.put('/update/quantity', [body('quantity_unit', 'Enter a valid quantity_unit').isLength({ min: 1 }), body('quantity_unit_id', 'Enter a valid quantity_unit_id')], updateQuantityUnit);
 
 module.exports = router;

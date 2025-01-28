@@ -12,7 +12,9 @@ const ItemShema = new Schema(
       unique: true
     },
     quantity_unit: {
-      type: String,
+      /*   type: String, */
+      type: 'ObjectId',
+      ref: 'Quantity_unit',
       required: true
     },
     active: {
