@@ -68,7 +68,7 @@ router.put('/update/:id', [body('name', 'Enter a valid name').isLength({ min: 3 
 //@desc Create User API
 //@route POST user/reset-password
 //@access Public
-router.post('/reset-password', [body('password'), body('email')], resetPassword);
+router.post('/reset/password', [body('old_password', 'Enter a valid password').isLength({ min: 5 }), body('password', 'Enter a valid password').isLength({ min: 5 }), body('email', 'Enter a Valid Email').isEmail()], resetPassword);
 
 //@desc Get User Info API
 //@route post user/get/:id

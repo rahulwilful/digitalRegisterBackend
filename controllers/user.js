@@ -120,7 +120,7 @@ const createUser = async (req, res) => {
     return res.status(201).json({ result: newUser, message: 'User created successfully' });
   } catch (error) {
     logger.error(`${ip}: API /api/v1/user/create responded with Error `);
-    return res.status(500).json({ message: error.message, message: 'something went wrong while creating user' });
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -457,9 +457,20 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const user = await User.findOneAndUpdate({ email: data.email }, { password: data.password });
+    const isPassCorrect = await bcrypt.compare(data.old_password, email.password);
+
+    if (!isPassCorrect) {
+      logger.error(`${ip}: API /api/v1/user/reset-password responded with password incorrect `);
+      return res.status(400).json({ error: 'Invalid password', message: 'Old password is incorrect' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const securedPass = await bcrypt.hash(data.password, salt);
+
+    const user = await User.findOneAndUpdate({ email: data.email }, { password: securedPass });
+
     logger.info(`${ip}: API /api/v1/user/user/reset-password responded with "Got user by ID successfully" `);
-    return res.status(201).json({ result: user, message: 'Password reset successfully' });
+    return res.status(201).json({ result: user, message: 'Password changed successfully' });
   } catch (error) {
     logger.error(`${ip}: API /api/v1/user/user/reset-password responded with user not found `);
     return res.status(500).json({ error: error, message: 'User not found' });
@@ -523,7 +534,6 @@ module.exports = {
   resetPassword,
   updateRoleType,
   updateUser,
-  resetPassword,
   deleteUser,
   restoreUser,
 
