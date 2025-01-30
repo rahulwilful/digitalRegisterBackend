@@ -1,4 +1,4 @@
-  const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const StorageLocation = require('./StorageLocation.js');
 const Item = require('./Item.js');
 const User = require('./User.js');
@@ -11,6 +11,7 @@ const Items = new Schema({
     ref: 'Item',
     required: true
   },
+
   quantity: {
     type: Number,
     required: true
@@ -35,6 +36,11 @@ const WareHouseRegisterShema = new Schema(
       required: true
     },
     item_list: [Items],
+    pickup_or_drop: {
+      type: String,
+      required: true,
+      default: 'pickup'
+    },
     active: {
       type: Boolean,
       default: true

@@ -82,9 +82,9 @@ const createUser = async (req, res) => {
   const superAdmin = await Role_type.findOne({ value: 'super_admin' });
   const super_admin_id = superAdmin._id;
 
-  if (req.user.role_type._iduper_admin_id) {
-    logger.error(`${ip}: API /api/v1/user/create responded with Error "Only super admin can create user" `);
-    return res.status(403).json({ message: 'Unauthorized action' });
+  if (data.role_type == super_admin_id && req.user.role_type.value != 'super_admin') {
+    logger.error(`${ip}: API /api/v1/user/create responded with Error "Only super admin can create another super admin" `);
+    return res.status(403).json({ message: 'Unauthorized to create  super admin' });
   }
 
   const oldUser = await User.findOne({ email: data.email });
@@ -302,6 +302,44 @@ const getUserById = async (req, res) => {
   }
 };
 
+//@desc Test User API
+//@route GET /getalluser
+//@access Private
+const getAllUsers = async (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+  try {
+    if (!req.user) {
+      logger.error(`${ip}: API /api/v1/api/v1/user/get/:id   responnded with Error , "Unautherized user" `);
+      return res.status(500).json({ message: 'Unauthorized user' });
+    }
+
+    console.log('req.user: ', req.user);
+
+    let users = [];
+
+    const userId = req.user._id;
+
+    if (req.user.role_type.value == 'super_admin') {
+      users = await User.find({ _id: { $ne: userId } })
+        .populate({ path: 'role_type' })
+        .populate({ path: 'storage_location_id' });
+      logger.info(`${ip}: API /api/v1/user/getallusers | Responded with "Successfully retrieved all users"`);
+    } else {
+      users = await User.find({ storage_location_id: req.user.storage_location_id._id, _id: { $ne: userId } })
+        .populate({ path: 'role_type' })
+        .populate({ path: 'storage_location_id' });
+      logger.info(`${ip}: API /api/v1/user/getallusers | Responded with "Successfully retrieved all users"`);
+    }
+
+    return res.status(200).json({ result: users, message: 'All users retrieved successfully' });
+  } catch (error) {
+    logger.error(`${ip}: API /api/v1/user/getallusers | Responded with Error: ${error.message}`);
+
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
 //@desc Get Users By Name API
 //@route POST /user/get/by/name
 //@access Private
@@ -320,19 +358,20 @@ const getUsersByName = async (req, res) => {
     return res.status(500).json({ message: 'Unauthorized user' });
   }
 
-  const superAdmin = await Role_type.findOne({ value: 'super_admin' });
-  const super_admin_id = superAdmin._id;
-
-  if (req.user.role_type._id != super_admin_id) {
-    logger.error(`${ip}: API /api/v1/user/get/by/name responded with Error "Unauthorized user"`);
-    return res.status(403).json({ message: 'Unauthorized user' });
-  }
+  const userId = req.user._id;
+  const storageId = req.user.storage_location_id._id;
 
   try {
-    const users = await User.find({ name: { $regex: data.name, $options: 'i' } })
-      .populate({ path: 'role_type' })
-      .populate({ path: 'storage_location_id' });
-
+    let users = [];
+    if (req.user.role_type.value == 'super_admin') {
+      users = await User.find({ name: { $regex: data.name, $options: 'i' }, _id: { $ne: userId } })
+        .populate({ path: 'role_type' })
+        .populate({ path: 'storage_location_id' });
+    } else {
+      users = await User.find({ name: { $regex: data.name, $options: 'i' }, storage_location_id: storageId, _id: { $ne: userId } })
+        .populate({ path: 'role_type' })
+        .populate({ path: 'storage_location_id' });
+    }
     if (!users.length) {
       logger.error(`${ip}: API /api/v1/user/get/by/name responded with "No users found"`);
       return res.status(404).json({ message: 'No users found' });
@@ -409,37 +448,6 @@ const getCurrentUser = async (req, res) => {
   } catch (e) {
     logger.error(`${ip}: API /api/v1/user/getcurrentuser responded with Error, " something went wrong"`);
     return res.status(500).json({ message: 'Something went wrong current user not found' });
-  }
-};
-
-//@desc Test User API
-//@route GET /getalluser
-//@access Private
-const getAllUsers = async (req, res) => {
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
-  try {
-    if (!req.user) {
-      logger.error(`${ip}: API /api/v1/api/v1/user/get/:id   responnded with Error , "Unautherized user" `);
-      return res.status(500).json({ message: 'Unauthorized user' });
-    }
-
-    const superAdmin = await Role_type.findOne({ value: 'super_admin' });
-    const super_admin_id = superAdmin._id;
-
-    if (req.user.role_type._id != super_admin_id) {
-      logger.error(`${ip}: API /api/v1/user/get/:id responded with Error "Unauthorized user" `);
-      return res.status(403).json({ message: 'Unauthorized user' });
-    }
-
-    const users = await User.find().populate({ path: 'role_type' }).populate({ path: 'storage_location_id' });
-    logger.info(`${ip}: API /api/v1/user/getallusers | Responded with "Successfully retrieved all users"`);
-
-    return res.status(200).json({ result: users, message: 'All users retrieved successfully' });
-  } catch (error) {
-    logger.error(`${ip}: API /api/v1/user/getallusers | Responded with Error: ${error.message}`);
-
-    return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
 

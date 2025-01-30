@@ -46,6 +46,7 @@ router.post(
   body('warehouse_admin', 'Enter a valid warehouse_admin').isLength({ min: 3 }),
   body('pickup_person', 'Enter a valid pickup_person').isLength({ min: 3 }),
   body('item_list', 'Enter a valid item_list').isLength({ min: 1 }),
+  body(`pickup_or_drop`),
   addRecord
 );
 

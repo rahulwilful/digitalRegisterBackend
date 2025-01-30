@@ -30,6 +30,7 @@ const addRecord = async (req, res) => {
       storage_location_id: data.storage_location_id,
       warehouse_admin: data.warehouse_admin,
       pickup_person: data.pickup_person,
+      pickup_or_drop: data.pickup_or_drop || 'pickup',
       item_list: data.item_list
     });
     logger.info(`${ip}: API /api/v1/register/add  responded with Success `);
