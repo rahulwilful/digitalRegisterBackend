@@ -35,7 +35,6 @@ router.post(
     body('password', 'Password must have atlest 5 character').isLength({
       min: 5
     }),
-    body('role_type'),
     body('storage_location_id')
   ],
   createSuperAdmin

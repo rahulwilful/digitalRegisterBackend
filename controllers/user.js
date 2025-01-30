@@ -390,7 +390,6 @@ const getUsersByName = async (req, res) => {
 //@access Private
 const getPickupPersonsByStorageLocationId = async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-
   const storageLocationId = req.params.id;
   if (!storageLocationId) {
     logger.error(`${ip}: API /user/get/pickup-persons-by-storage-location/:id | Missing storageLocationId`);
