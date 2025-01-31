@@ -411,6 +411,7 @@ const getPickupPersonsByStorageLocationId = async (req, res) => {
     }
 
     const pickupPersons = await User.find({
+      is_delete: false,
       storage_location_id: storageLocationId,
       role_type: pickupRole._id
     })
